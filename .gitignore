@@ -1,0 +1,7 @@
+node_modules/
+dist/
+video/out/
+shots/
+*.log
+.DS_Store
+.cache

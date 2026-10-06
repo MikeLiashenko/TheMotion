@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Scroll from the edge of the observable universe down to a single atom, and on into its nucleus: 42 orders of magnitude in one continuous zoom." />
+    <meta name="theme-color" content="#02030a" />
+    <meta property="og:title" content="Motion: From Universe to Atom" />
+    <meta property="og:description" content="One continuous zoom through 42 orders of magnitude, from everything we can see down to the inside of a proton." />
+    <meta property="og:type" content="website" />
+    <title>Motion: From Universe to Atom</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <!-- Linked here rather than imported from JS, so the title card is styled before the scene is built. -->
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="is-loading">
+    <canvas id="scene" aria-label="A continuous zoom from the observable universe down to an atom"></canvas>
+
+    <div id="hud">
+      <header class="brand">
+        <span class="brand-name">Motion</span>
+        <span class="brand-sub">From Universe to Atom</span>
+        <button class="brand-about" id="about-open" type="button">About</button>
+      </header>
+
+      <div class="readout" aria-live="off">
+        <span class="readout-caption">Field of view</span>
+        <span class="readout-sci" id="scale-sci"></span>
+        <span class="readout-friendly" id="scale-friendly"></span>
+      </div>
+
+      <div class="stage" id="stage">
+        <span class="stage-part" id="stage-part"></span>
+        <h2 class="stage-title" id="stage-title"></h2>
+        <p class="stage-tag" id="stage-tag"></p>
+      </div>
+
+      <div class="scalebar">
+        <div class="scalebar-line" id="scalebar-line"></div>
+        <span class="scalebar-label" id="scalebar-label"></span>
+        <span class="scalebar-note" id="scale-note" hidden></span>
+      </div>
+
+      <nav class="rail" aria-label="Stops">
+        <div class="rail-track"><div class="rail-fill" id="rail-fill"></div></div>
+        <div class="rail-ticks" id="rail-ticks"></div>
+      </nav>
+
+      <div class="credit" id="credit" hidden></div>
+
+      <div id="labels"></div>
+      <div class="fps" id="fps" hidden></div>
+
+      <section class="outro" id="outro" aria-hidden="true">
+        <span class="outro-kicker">The end of the journey</span>
+        <h2 class="outro-title">Forty-two powers of ten</h2>
+        <p class="outro-text">
+          From everything we can see, 93 billion light-years across, to the inside of a proton, a millionth of a
+          millionth of a millimetre wide. It is all one world, and you have just crossed it.
+        </p>
+        <div class="outro-actions">
+          <button type="button" id="outro-restart">Back to the start</button>
+          <button type="button" id="outro-about">About this journey</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="intro" id="intro">
+      <h1 class="intro-title">Motion</h1>
+      <p class="intro-sub">From Universe to Atom</p>
+      <div class="intro-loader" role="progressbar" aria-label="Building the universe"><span id="loader-bar"></span></div>
+      <p class="intro-trouble" id="trouble" hidden></p>
+      <div class="intro-hint"><span class="intro-mouse"></span>Scroll to begin</div>
+    </section>
+
+    <div class="about" id="about" role="dialog" aria-modal="true" aria-labelledby="about-title" data-lenis-prevent hidden>
+      <div class="about-sheet">
+        <button class="about-close" id="about-close" type="button" aria-label="Close">Close</button>
+        <h2 id="about-title">About this journey</h2>
+        <p class="about-lead">
+          One continuous zoom from the observable universe to a carbon atom in the leaf of a tree, and on into the atom’s
+          nucleus. There is a stop at every power of ten or so on the way.
+        </p>
+
+        <h3>Finding your way</h3>
+        <ul>
+          <li>Scroll, drag or use the arrow keys to zoom. It works in both directions.</li>
+          <li><kbd>→</kbd> and <kbd>←</kbd> travel to the next and the previous stop; <kbd>Home</kbd> and <kbd>End</kbd> to either end.</li>
+          <li>The marks on the right-hand edge are the stops: point at one for its name, click it to go there.</li>
+          <li>Point at a label for a line about the thing it names.</li>
+        </ul>
+
+        <h3>What is real here, and what is not</h3>
+        <ul>
+          <li>The number at the top right is the true height of what the screen shows. Sizes and distances are to scale unless the line beside the scale bar says otherwise.</li>
+          <li>Where things would be far too small to see at their true size (planets among their orbits, galaxies among their neighbours) they are drawn larger, and the page says so at the time.</li>
+          <li>Inside the Milky Way, stars, clusters and nebulae stand where they really are. Further out, distances are roughly right and directions are not.</li>
+          <li>The Earth is real: photographs from space, from the air and of a real meadow on the Rhine. Clouds near the ground are generated.</li>
+          <li>From the tree downwards everything is a model: the leaf, its cells, the DNA and the atom are drawn from what is known of their sizes and shapes, in colours chosen to tell their parts apart. Nothing down there has a colour of its own.</li>
+          <li>The galaxies, nebulae, the Sun’s face and the planets’ surfaces are generated to resemble the real ones. They are impressions, not images.</li>
+        </ul>
+
+        <h3>Pictures of the Earth</h3>
+        <ul>
+          <li>Blue Marble: Next Generation, Black Marble and the cloud map: NASA Earth Observatory and NASA Visible Earth.</li>
+          <li><a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless</a> by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2016), CC BY 4.0.</li>
+          <li>Aerial photographs: Geobasis NRW, Datenlizenz Deutschland Zero 2.0.</li>
+        </ul>
+
+        <h3>Made with</h3>
+        <p>three.js, Lenis and the Space Grotesk typeface. The figures quoted along the way are still being checked against their sources: if you find one that is wrong, it is our mistake, not the universe’s.</p>
+      </div>
+    </div>
+
+    <noscript><p class="noscript">Motion is an interactive journey drawn in your browser: it needs JavaScript to run.</p></noscript>
+
+    <div id="scroll-space" aria-hidden="true"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

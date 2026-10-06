@@ -1,0 +1,17 @@
+{
+  "name": "A meadow on the left bank of the Rhine, east of Xanten, Germany",
+  "lat": 51.656378,
+  "lon": 6.522878,
+  "sunAzimuth": 145.5,
+  "levelSize": 2048,
+  "levels": [
+    { "file": "site-1.webp", "extent": 2400000, "source": "bluemarble" },
+    { "file": "site-2.webp", "extent": 600000, "source": "sentinel" },
+    { "file": "site-3.webp", "extent": 150000, "source": "sentinel" },
+    { "file": "site-4.webp", "extent": 37500, "source": "sentinel" },
+    { "file": "site-5.webp", "extent": 9375, "source": "aerial" },
+    { "file": "site-6.webp", "extent": 2343.75, "source": "aerial" },
+    { "file": "site-7.webp", "extent": 585.9375, "source": "aerial" },
+    { "file": "site-8.webp", "extent": 146.484375, "source": "aerial" }
+  ]
+}

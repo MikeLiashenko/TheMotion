@@ -1,0 +1,828 @@
+:root {
+  --bg: #02030a;
+  --ink: #eef2ff;
+  --ink-dim: rgba(226, 232, 255, 0.62);
+  --ink-faint: rgba(226, 232, 255, 0.28);
+  --accent: #7df9ff;
+  --edge: clamp(16px, 3vw, 40px);
+  /* Room for a phone's notch and home bar. */
+  --edge-top: max(var(--edge), env(safe-area-inset-top));
+  --edge-bottom: max(var(--edge), env(safe-area-inset-bottom));
+  font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  overscroll-behavior: none;
+}
+
+/* The rail on the right is the scrollbar. */
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: opacity 1.4s ease-out;
+}
+
+/* While the scene is being built only the title card shows; then everything fades in. */
+.is-loading #scene,
+.is-loading #hud,
+.is-loading .intro-hint {
+  opacity: 0;
+}
+
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 1.4s ease-out;
+  /* Darken the edges so text stays readable over bright scenes. */
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(2, 3, 10, 0.55) 100%),
+    linear-gradient(to top, rgba(2, 3, 10, 0.7), transparent 28%);
+}
+
+/* Hidden behind the title card until scrolling begins (see Hud.update). */
+.scalebar,
+#labels {
+  opacity: var(--reveal, 1);
+}
+
+/* The caption also makes way for the closing card at the very end. */
+.stage {
+  opacity: calc(var(--reveal, 1) * (1 - var(--ending, 0)));
+}
+
+/* ── Brand ── */
+.brand {
+  position: absolute;
+  top: var(--edge-top);
+  left: var(--edge);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.brand-about {
+  margin-left: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 999px;
+  background: rgba(2, 3, 10, 0.35);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: var(--reveal, 1);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.brand-about:hover,
+.brand-about:focus-visible {
+  color: var(--ink);
+  border-color: var(--accent);
+  outline: none;
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+}
+
+.brand-sub {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+}
+
+/* ── Scale readout ── */
+.readout {
+  position: absolute;
+  top: var(--edge-top);
+  right: calc(var(--edge) + 44px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.readout-caption {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.readout-sci {
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 500;
+}
+
+.readout-friendly {
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+
+/* ── Stage title ── */
+.stage {
+  position: absolute;
+  left: var(--edge);
+  bottom: calc(var(--edge-bottom) + 44px);
+  max-width: min(520px, 62vw);
+}
+
+/* A new caption fades in where the old one was: nothing on the page jumps while the picture glides. */
+.stage.is-entering > * {
+  animation: stage-in 0.5s ease-out both;
+}
+
+@keyframes stage-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.stage-part {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.stage-title {
+  margin: 6px 0 8px;
+  font-size: clamp(30px, 5vw, 60px);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+
+.stage-tag {
+  margin: 0;
+  font-size: clamp(14px, 1.3vw, 17px);
+  line-height: 1.45;
+  color: var(--ink-dim);
+}
+
+/* ── Scale bar ── */
+.scalebar {
+  position: absolute;
+  left: var(--edge);
+  bottom: var(--edge-bottom);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.scalebar-line {
+  height: 7px;
+  border: 1px solid var(--ink-dim);
+  border-top: 0;
+}
+
+/* Where a layer bends the truth (objects drawn larger than life), it says so here. */
+.scalebar-note {
+  margin-left: 4px;
+  padding-left: 14px;
+  border-left: 1px solid var(--ink-faint);
+  color: var(--accent);
+}
+
+/* Whose pictures are on screen, where a layer shows other people's imagery. */
+.credit {
+  position: absolute;
+  right: calc(var(--edge) + 44px);
+  bottom: var(--edge-bottom);
+  max-width: 46vw;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-align: right;
+  color: var(--ink-dim);
+  text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+  opacity: var(--reveal, 1);
+}
+
+/* ── Progress rail ── */
+.rail {
+  position: absolute;
+  top: 16vh;
+  bottom: 16vh;
+  right: var(--edge);
+  width: 20px;
+  pointer-events: auto;
+}
+
+.rail-track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 9px;
+  width: 1px;
+  background: var(--ink-faint);
+}
+
+.rail-fill {
+  width: 100%;
+  background: var(--accent);
+}
+
+.rail-ticks {
+  position: absolute;
+  inset: 0;
+}
+
+.rail-tick {
+  position: absolute;
+  right: 0;
+  width: 20px;
+  height: 12px;
+  margin-top: -6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.rail-tick::before {
+  content: '';
+  position: absolute;
+  right: 6px;
+  top: 5px;
+  width: 7px;
+  height: 1px;
+  background: var(--ink-dim);
+  transition: width 0.2s, background 0.2s, right 0.2s;
+}
+
+.rail-tick.is-active::before,
+.rail-tick:hover::before,
+.rail-tick:focus-visible::before {
+  width: 15px;
+  right: 2px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.rail-tick:focus-visible {
+  outline: none;
+}
+
+.rail-name {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(2, 3, 10, 0.78);
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.rail-tick:hover .rail-name,
+.rail-tick:focus-visible .rail-name {
+  opacity: 1;
+}
+
+/* ── Object labels ── */
+#labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s linear;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.label.is-visible {
+  pointer-events: auto;
+}
+
+/* A label takes whichever corner around its object is free: flipped = to the left, below = underneath. */
+.label.is-flipped {
+  flex-direction: row-reverse;
+}
+
+.label.is-flipped .label-dot {
+  transform-origin: right center;
+  transform: rotate(32deg);
+}
+
+.label.is-flipped .label-text {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.label.is-below .label-dot {
+  transform: rotate(32deg);
+}
+
+.label.is-below .label-text {
+  margin-top: 5px;
+}
+
+.label.is-flipped.is-below .label-dot {
+  transform: rotate(-32deg);
+}
+
+.label-dot {
+  flex: none;
+  width: 22px;
+  height: 1px;
+  margin-top: 0;
+  background: var(--ink-dim);
+  transform-origin: left center;
+  transform: rotate(-32deg);
+}
+
+.label-text {
+  margin-top: -22px;
+  display: flex;
+  flex-direction: column;
+  text-shadow: 0 0 8px var(--bg), 0 0 2px var(--bg);
+}
+
+.label b {
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.label small {
+  max-width: 230px;
+  max-height: 0;
+  overflow: hidden;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--ink-dim);
+  opacity: 0;
+  transition: opacity 0.25s, max-height 0.25s;
+}
+
+.label:hover small {
+  max-height: 80px;
+  opacity: 1;
+}
+
+.label.kind-you b {
+  color: var(--accent);
+}
+
+/* ── Intro ── */
+.intro {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(2, 3, 10, 0.5) 0%, transparent 60%);
+}
+
+.intro-title {
+  margin: 0;
+  font-size: clamp(56px, 13vw, 190px);
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  /* Optically re-centre: letter-spacing adds a trailing gap. */
+  margin-right: -0.3em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.intro-sub {
+  margin: 18px 0 0;
+  font-size: clamp(13px, 1.5vw, 19px);
+  letter-spacing: 0.5em;
+  margin-right: -0.5em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 0 14px var(--bg), 0 0 4px var(--bg);
+}
+
+.intro-loader {
+  width: min(240px, 40vw);
+  height: 1px;
+  margin-top: 34px;
+  background: var(--ink-faint);
+  transition: opacity 0.6s;
+}
+
+.intro-loader span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.15s linear;
+}
+
+body:not(.is-loading) .intro-loader {
+  opacity: 0;
+}
+
+.intro-hint {
+  transition: opacity 1.4s ease-out;
+  position: absolute;
+  bottom: 9vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.intro-mouse {
+  position: relative;
+  width: 20px;
+  height: 32px;
+  border: 1px solid var(--ink-dim);
+  border-radius: 10px;
+}
+
+.intro-mouse::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--ink);
+}
+
+/* ── The closing card ── */
+.outro {
+  position: absolute;
+  left: var(--edge);
+  bottom: calc(var(--edge-bottom) + 44px);
+  max-width: min(470px, 80vw);
+  padding: 20px 22px 22px;
+  margin: 0 0 -22px -22px;
+  border-radius: 16px;
+  background: rgba(2, 3, 10, 0.62);
+  backdrop-filter: blur(5px);
+  opacity: var(--ending, 0);
+  visibility: hidden;
+}
+
+.outro.is-shown {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.outro-kicker {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.outro-title {
+  margin: 6px 0 10px;
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+}
+
+.outro-text {
+  margin: 0 0 18px;
+  font-size: clamp(14px, 1.3vw, 17px);
+  line-height: 1.5;
+  color: var(--ink-dim);
+  text-shadow: 0 0 10px var(--bg), 0 0 3px var(--bg);
+}
+
+.outro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.outro-actions button,
+.about-close {
+  padding: 9px 16px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 999px;
+  background: rgba(2, 3, 10, 0.55);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.outro-actions button:first-child {
+  border-color: var(--accent);
+}
+
+.outro-actions button:hover,
+.outro-actions button:focus-visible,
+.about-close:hover,
+.about-close:focus-visible {
+  border-color: var(--accent);
+  background: rgba(125, 249, 255, 0.12);
+  outline: none;
+}
+
+/* ── The About sheet ── */
+.is-reading {
+  overflow: hidden;
+}
+
+.about {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(2, 3, 10, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.about[hidden] {
+  display: none;
+}
+
+.about-sheet {
+  position: relative;
+  width: min(560px, 100%);
+  min-height: 100%;
+  height: max-content;
+  padding: clamp(28px, 5vw, 56px) clamp(22px, 4vw, 44px) 64px;
+  background: rgba(6, 8, 20, 0.96);
+  border-left: 1px solid var(--ink-faint);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+
+.about-sheet h2 {
+  margin: 0 0 14px;
+  font-size: clamp(26px, 3.4vw, 38px);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.about-sheet h3 {
+  margin: 30px 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.about-lead {
+  margin: 0;
+  font-size: 17px;
+  color: var(--ink);
+}
+
+.about-sheet ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.about-sheet li {
+  margin: 0 0 8px;
+}
+
+.about-sheet a {
+  color: var(--ink);
+}
+
+.about-sheet kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--ink-faint);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.about-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin: -6px -6px 8px 16px;
+}
+
+/* ── When the journey cannot be shown ── */
+.intro-trouble {
+  max-width: min(460px, 82vw);
+  margin: 30px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  pointer-events: auto;
+}
+
+.is-stuck .intro-loader,
+.is-stuck .intro-hint {
+  display: none;
+}
+
+.is-stuck .intro {
+  opacity: 1 !important;
+  background: var(--bg);
+}
+
+.noscript {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 12vh;
+  margin: 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.fps {
+  position: absolute;
+  left: 50%;
+  top: var(--edge);
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Narrow windows and phones ── */
+@media (max-width: 720px) {
+  .brand-sub {
+    display: none;
+  }
+
+  .brand-name {
+    font-size: 13px;
+  }
+
+  .readout {
+    right: calc(var(--edge) + 30px);
+  }
+
+  .readout-caption {
+    display: none;
+  }
+
+  .stage,
+  .outro {
+    max-width: calc(100vw - 2 * var(--edge) - 34px);
+  }
+
+  .stage-title {
+    font-size: clamp(26px, 8.4vw, 40px);
+  }
+
+  .stage-tag {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  /* The note beside the scale bar moves under it, where there is room for it. */
+  .scalebar {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    max-width: calc(100vw - 2 * var(--edge) - 34px);
+  }
+
+  .scalebar-note {
+    flex-basis: 100%;
+    order: -1;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 11px;
+    /* The closing card needs the room. */
+    opacity: calc(1 - var(--ending, 0));
+  }
+
+  .credit {
+    left: var(--edge);
+    right: calc(var(--edge) + 34px);
+    bottom: calc(var(--edge-bottom) + 44px);
+    max-width: none;
+    text-align: left;
+    font-size: 10px;
+  }
+
+  .stage,
+  .outro {
+    bottom: calc(var(--edge-bottom) + 52px);
+  }
+
+  .has-credit .stage,
+  .has-credit .outro {
+    bottom: calc(var(--edge-bottom) + 80px);
+  }
+
+  .rail {
+    top: 20vh;
+    bottom: 24vh;
+    right: max(4px, calc(var(--edge) - 12px));
+  }
+
+  .label b {
+    font-size: 11.5px;
+  }
+
+  .label small {
+    max-width: 170px;
+  }
+}
+
+/* A short, wide window: a phone on its side. */
+@media (max-height: 480px) {
+  .stage {
+    bottom: calc(var(--edge-bottom) + 30px);
+  }
+
+  .stage-title {
+    margin: 2px 0 4px;
+    font-size: clamp(22px, 7vh, 34px);
+  }
+
+  .stage-tag {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .rail {
+    top: 22vh;
+    bottom: 12vh;
+  }
+
+  .intro-hint {
+    bottom: 5vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage.is-entering > * {
+    animation: none;
+  }
+}

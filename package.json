@@ -1,0 +1,28 @@
+{
+  "name": "motion",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Motion: From Universe to Atom - a scroll-driven journey through 42 orders of magnitude",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "shots": "node scripts/shots.mjs shots",
+    "perf": "node scripts/perf.mjs",
+    "textures": "node scripts/textures.mjs"
+  },
+  "dependencies": {
+    "lenis": "^1.3.26",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "playwright-core": "^1.63.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  }
+}
